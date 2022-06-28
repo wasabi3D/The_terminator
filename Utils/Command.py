@@ -35,7 +35,7 @@ def parse2cmd(raw_command: str,
         preprocess.append(arg)
 
     cmd = TypedCommand()
-    cmd.keyword = preprocess[0]
+    cmd.keyword = preprocess[0].removeprefix(CMD_PREFIX)
     for kw in preprocess[1:]:
         if kw.startswith(OPTION_PREFIX):
             cmd.options.append(kw)
