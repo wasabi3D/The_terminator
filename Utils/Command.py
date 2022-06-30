@@ -1,3 +1,4 @@
+from __future__ import annotations
 import dataclasses
 
 import discord
@@ -22,6 +23,21 @@ class TypedCommand:
     raw: str = ""  # raw arguments and options
 
 
+def removeprefix(self: str, prefix: str, /) -> str:
+    if self.startswith(prefix):
+        return self[len(prefix):]
+    else:
+        return self[:]
+
+
+def removesuffix(self: str, suffix: str, /) -> str:
+    # suffix='' should not call self[:-0].
+    if suffix and self.endswith(suffix):
+        return self[:-len(suffix)]
+    else:
+        return self[:]
+
+
 def parse2cmd(raw_command: str,
               usr: typing.Optional[discord.User] = None,
               channel: typing.Optional[discord.TextChannel] = None
@@ -39,12 +55,14 @@ def parse2cmd(raw_command: str,
         if len(preprocess) > 0:
             last = preprocess[-1]
             if last[-1] == CANCEL_SPACE:
-                last = last.removesuffix(CANCEL_SPACE)
+                # last = last.removesuffix(CANCEL_SPACE)
+                last = removesuffix(last, CANCEL_SPACE)
                 preprocess[-1] = " ".join([last, arg])
                 continue
         preprocess.append(arg)
 
-    cmd = TypedCommand(keyword=preprocess[0].removeprefix(CMD_PREFIX), raw=" ".join(preprocess[1:]))
+    # cmd = TypedCommand(keyword=preprocess[0].removeprefix(CMD_PREFIX), raw=" ".join(preprocess[1:]))
+    cmd = TypedCommand(keyword=removeprefix(preprocess[0], CMD_PREFIX), raw=" ".join(preprocess[1:]))
     for kw in preprocess[1:]:
         if kw.startswith(OPTION_PREFIX):
             cmd.options.append(kw)
