@@ -11,12 +11,12 @@ OPTION_PREFIX = "--"
 
 @dataclasses.dataclass
 class TypedCommand:
-    def __init__(self):
-        self.keyword: str = ""  # the first word of a command. often associated with a prefix
-        self.args: list[str] = []  # required arguments
-        self.options: list[str] = []  # starts with --
-        self.user: typing.Optional[discord.User] = None  # the user who typed the command
-        self.channel: typing.Optional[discord.TextChannel] = None
+    keyword: str = ""  # the first word of a command. often associated with a prefix
+    args: list[str] = dataclasses.field(default_factory=list)  # required arguments
+    options: list[str] = dataclasses.field(default_factory=list)  # starts with --
+    user: typing.Optional[discord.User] = None  # the user who typed the command
+    channel: typing.Optional[discord.TextChannel] = None
+    raw: str = ""  # raw arguments and options
 
 
 def parse2cmd(raw_command: str,
@@ -34,8 +34,7 @@ def parse2cmd(raw_command: str,
                 continue
         preprocess.append(arg)
 
-    cmd = TypedCommand()
-    cmd.keyword = preprocess[0].removeprefix(CMD_PREFIX)
+    cmd = TypedCommand(keyword=preprocess[0].removeprefix(CMD_PREFIX), raw=" ".join(preprocess[1:]))
     for kw in preprocess[1:]:
         if kw.startswith(OPTION_PREFIX):
             cmd.options.append(kw)
@@ -45,3 +44,28 @@ def parse2cmd(raw_command: str,
     cmd.user = usr
     cmd.channel = channel
     return cmd
+
+
+class BaseCommand:
+    def __init__(self):
+        self.keyword = ""
+
+    async def run(self, cmd: TypedCommand):
+        pass
+
+
+class CommandInterpreter:
+    def __init__(self, *available_commands: typing.Callable):
+        self.commands: list[BaseCommand] = list(map(lambda c: c(), available_commands))
+
+    async def on_message(self, msg: discord.Message):
+        if not msg.content.startswith(CMD_PREFIX):
+            return
+        typed_cmd = parse2cmd(msg.content, msg.author, msg.channel)
+        called_cmd: BaseCommand = BaseCommand()
+        for cmd in self.commands:
+            if typed_cmd.keyword.lower() == cmd.keyword.lower():
+                called_cmd = cmd
+                break
+
+        await called_cmd.run(typed_cmd)

@@ -1,6 +1,33 @@
+import discord
+import yaml
+import typing
 import Utils
+from commands_list import *
 
-a = Utils.parse2cmd(r"!hello world --this\ is\ an\ option yeee")
-print(a.keyword)
-print(a.args)
-print(a.options)
+
+def main(configs: dict[str, typing.Any]):
+    print(f"Bot token is: {configs['token']}")
+
+    client = discord.Client()
+
+    @client.event
+    async def on_ready():
+        print('Bot successfully connected to Discord.')
+
+    execute_on_msg = [
+        Utils.CommandInterpreter(
+            Ping,
+            Echo
+        )
+    ]
+
+    @client.event
+    async def on_message(message: discord.Message):
+        for cal in execute_on_msg:
+            await cal.on_message(message)
+
+    client.run(configs['token'])
+
+
+if __name__ == "__main__":
+    main(yaml.load(open("botconfigs.yml", "r"), yaml.CLoader))

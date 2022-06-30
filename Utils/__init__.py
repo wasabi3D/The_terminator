@@ -1,1 +1,1 @@
-from Utils.Command import TypedCommand, parse2cmd
+from Utils.Command import TypedCommand, parse2cmd, CommandInterpreter, BaseCommand
