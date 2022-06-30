@@ -19,7 +19,9 @@ def main(config: dict[str, typing.Any]):
     execute_on_msg = [
         Utils.CommandInterpreter(
             Ping,
-            Echo
+            Echo,
+            Adder,
+            ChangePrefix
         )
     ]
 
