@@ -80,6 +80,7 @@ class BaseCommand:
     """
     def __init__(self):
         self.keyword = ""
+        self.description = ""
 
     async def run(self, cmd: TypedCommand, client):
         pass

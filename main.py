@@ -3,6 +3,8 @@ import yaml
 import typing
 import Utils
 import os
+
+import commands_list
 from commands_list import *
 
 
@@ -18,10 +20,7 @@ def main(config: dict[str, typing.Any]):
 
     execute_on_msg = [
         Utils.CommandInterpreter(
-            Ping,
-            Echo,
-            Adder,
-            ChangePrefix
+            *commands_list.CMD_LIST
         )
     ]
 
