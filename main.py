@@ -5,8 +5,8 @@ import Utils
 from commands_list import *
 
 
-def main(configs: dict[str, typing.Any]):
-    print(f"Bot token is: {configs['token']}")
+def main(config: dict[str, typing.Any]):
+    print(f"Bot token is: {config['token']}")
 
     client = discord.Client()
 
@@ -26,7 +26,7 @@ def main(configs: dict[str, typing.Any]):
         for cal in execute_on_msg:
             await cal.on_message(message)
 
-    client.run(configs['token'])
+    client.run(config['token'])
 
 
 if __name__ == "__main__":

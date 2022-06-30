@@ -11,6 +11,9 @@ OPTION_PREFIX = "--"
 
 @dataclasses.dataclass
 class TypedCommand:
+    """
+    Interpreted command by the user
+    """
     keyword: str = ""  # the first word of a command. often associated with a prefix
     args: list[str] = dataclasses.field(default_factory=list)  # required arguments
     options: list[str] = dataclasses.field(default_factory=list)  # starts with --
@@ -23,6 +26,13 @@ def parse2cmd(raw_command: str,
               usr: typing.Optional[discord.User] = None,
               channel: typing.Optional[discord.TextChannel] = None
               ) -> TypedCommand:
+    """
+    Converts raw string command to TypedCommand
+
+    :param raw_command: raw string
+    :param usr: the user who typed this
+    :param channel: the channel which the command was typed
+    """
     spl = raw_command.split(" ")
     preprocess = []
     for arg in spl:
@@ -47,6 +57,9 @@ def parse2cmd(raw_command: str,
 
 
 class BaseCommand:
+    """
+    Base class to define all other commands. See commands_list.py for examples
+    """
     def __init__(self):
         self.keyword = ""
 
@@ -55,6 +68,9 @@ class BaseCommand:
 
 
 class CommandInterpreter:
+    """
+    Class which executes a given command
+    """
     def __init__(self, *available_commands: typing.Callable):
         self.commands: list[BaseCommand] = list(map(lambda c: c(), available_commands))
 
