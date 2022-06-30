@@ -81,7 +81,7 @@ class BaseCommand:
     def __init__(self):
         self.keyword = ""
 
-    async def run(self, cmd: TypedCommand):
+    async def run(self, cmd: TypedCommand, client):
         pass
 
 
@@ -92,7 +92,7 @@ class CommandInterpreter:
     def __init__(self, *available_commands: typing.Callable):
         self.commands: list[BaseCommand] = list(map(lambda c: c(), available_commands))
 
-    async def on_message(self, msg: discord.Message):
+    async def on_message(self, msg: discord.Message, client: discord.Client):
         if not msg.content.startswith(CMD_PREFIX):
             return
         typed_cmd = parse2cmd(msg.content, msg.author, msg.channel)
@@ -102,4 +102,4 @@ class CommandInterpreter:
                 called_cmd = cmd
                 break
 
-        await called_cmd.run(typed_cmd)
+        await called_cmd.run(typed_cmd, client)
