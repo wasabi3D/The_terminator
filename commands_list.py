@@ -1,10 +1,8 @@
 import typing
-
 import discord
-
 import Utils
-
-from Utils.Command import BaseCommand, TypedCommand
+from Utils.Command import BaseCommand, TypedCommand, Permission
+import config_manager as cfg_mng
 
 
 class Ping(BaseCommand):
@@ -45,13 +43,22 @@ class ChangePrefix(BaseCommand):
         super().__init__()
         self.keyword = "chprefix"
         self.description = "Change command prefix."
+        self.permission_level = Permission.ADMIN
 
     async def run(self, cmd: TypedCommand, client: discord.Client):
         if len(cmd.args) == 0:
             await cmd.channel.send("Please enter the new prefix.")
             return
         new_prefix = cmd.args[0]
-        Utils.Command.CMD_PREFIX = new_prefix
+        if cmd.do_contain_option("option"):
+            Utils.Command.OPTION_PREFIX = new_prefix
+        else:
+            Utils.Command.CMD_PREFIX = new_prefix
+
+        if not cmd.do_contain_option("tmp"):
+            cfg_mng.cfg.config["option_prefix"] = Utils.Command.OPTION_PREFIX
+            cfg_mng.cfg.config["command_prefix"] = Utils.Command.CMD_PREFIX
+            cfg_mng.cfg.export_config()
         await client.change_presence(activity=discord.Game(f"Type {Utils.Command.CMD_PREFIX}help"))
         await cmd.channel.send("Prefix successfully changed.")
 
@@ -62,13 +69,15 @@ class Help(BaseCommand):
         self.keyword = "help"
         self.description = "Display commands list and their description."
 
-    async def run(self, cmd: TypedCommand, client):
+    async def run(self, cmd: TypedCommand, client: discord.Client):
         embed = discord.Embed()
         embed.title = "Help"
         embed.colour = discord.Colour.red()
         for c in CMD_LIST:
             ins: BaseCommand = c()
-            embed.add_field(name=f"{Utils.Command.CMD_PREFIX}{ins.keyword}", value=ins.description)
+            if cmd.user_hierarchy.value >= ins.permission_level.value or\
+                    f"{Utils.Command.OPTION_PREFIX}all" in cmd.options:
+                embed.add_field(name=f"{Utils.Command.CMD_PREFIX}{ins.keyword}", value=ins.description)
 
         await cmd.channel.send(embed=embed)
 

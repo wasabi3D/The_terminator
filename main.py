@@ -1,17 +1,13 @@
-import discord
-import yaml
-import typing
-import Utils
-import os
-
 import commands_list
 from commands_list import *
+import config_manager as cfg_mng
 
 
 def main(config: dict[str, typing.Any]):
     print(f"Bot token is: {config['token']}")
-
-    client = discord.Client()
+    intents = discord.Intents.default()
+    intents.members = True
+    client = discord.Client(intents=intents)
 
     @client.event
     async def on_ready():
@@ -29,10 +25,10 @@ def main(config: dict[str, typing.Any]):
         for cal in execute_on_msg:
             await cal.on_message(message, client)
 
+    Utils.Command.CMD_PREFIX = config['command_prefix']
+    Utils.Command.OPTION_PREFIX = config['option_prefix']
     client.run(config['token'])
 
 
 if __name__ == "__main__":
-    os.chdir(os.path.dirname(os.path.realpath(__file__)))
-    print(os.listdir())
-    main(yaml.load(open("botconfigs.yml", "r"), yaml.CLoader))
+    main(cfg_mng.cfg.get_config())

@@ -1,5 +1,6 @@
 from __future__ import annotations
 import dataclasses
+from enum import Enum
 
 import discord
 import typing
@@ -8,6 +9,12 @@ import typing
 CMD_PREFIX = "!"
 CANCEL_SPACE = "\\"
 OPTION_PREFIX = "--"
+
+
+class Permission(Enum):
+    EVERYONE = 0
+    MOD = 1
+    ADMIN = 2
 
 
 @dataclasses.dataclass
@@ -21,6 +28,17 @@ class TypedCommand:
     user: typing.Optional[discord.User] = None  # the user who typed the command
     channel: typing.Optional[discord.TextChannel] = None
     raw: str = ""  # raw arguments and options
+    user_hierarchy: Permission = Permission.EVERYONE
+
+    def do_contain_option(self, option) -> bool:
+        """
+        :param option: Option without its prefix
+        :return: True or False
+        """
+        for op in self.options:
+            if op.startswith(f"{OPTION_PREFIX}{option}"):
+                return True
+        return False
 
 
 def removeprefix(self: str, prefix: str, /) -> str:
@@ -55,22 +73,27 @@ def parse2cmd(raw_command: str,
         if len(preprocess) > 0:
             last = preprocess[-1]
             if last[-1] == CANCEL_SPACE:
-                # last = last.removesuffix(CANCEL_SPACE)
                 last = removesuffix(last, CANCEL_SPACE)
                 preprocess[-1] = " ".join([last, arg])
                 continue
         preprocess.append(arg)
 
-    # cmd = TypedCommand(keyword=preprocess[0].removeprefix(CMD_PREFIX), raw=" ".join(preprocess[1:]))
     cmd = TypedCommand(keyword=removeprefix(preprocess[0], CMD_PREFIX), raw=" ".join(preprocess[1:]))
     for kw in preprocess[1:]:
         if kw.startswith(OPTION_PREFIX):
             cmd.options.append(kw)
         else:
+            if kw.startswith('"') and kw.endswith('"'):
+                kw = removesuffix(removeprefix(kw, '"'), '"')
             cmd.args.append(kw)
 
     cmd.user = usr
     cmd.channel = channel
+    guild: discord.Guild = channel.guild
+    member: discord.Member = guild.get_member(usr.id)
+    if member.guild_permissions.administrator:
+        cmd.user_hierarchy = Permission.ADMIN
+
     return cmd
 
 
@@ -81,6 +104,7 @@ class BaseCommand:
     def __init__(self):
         self.keyword = ""
         self.description = ""
+        self.permission_level: Permission = Permission.EVERYONE
 
     async def run(self, cmd: TypedCommand, client):
         pass
@@ -103,4 +127,7 @@ class CommandInterpreter:
                 called_cmd = cmd
                 break
 
-        await called_cmd.run(typed_cmd, client)
+        if typed_cmd.user_hierarchy.value >= called_cmd.permission_level.value:
+            await called_cmd.run(typed_cmd, client)
+        else:
+            await msg.channel.send("You don't have enough permissions to run that command.")

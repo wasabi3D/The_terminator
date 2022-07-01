@@ -1,4 +1,3 @@
-# bot config variables
-# invite link: https://discord.com/oauth2/authorize?client_id=992079193686945873&scope=bot&permissions=8
-
-token: ""  # copy from bot testing server
+command_prefix: '!'
+option_prefix: --
+token: OTkyMDc5MTkzNjg2OTQ1ODcz.GMaIBR.bEQVuDj9cd-rb3huP4d7QngpNeOBGNRrOmC8xI
