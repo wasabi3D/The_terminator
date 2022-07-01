@@ -30,15 +30,15 @@ class TypedCommand:
     raw: str = ""  # raw arguments and options
     user_hierarchy: Permission = Permission.EVERYONE
 
-    def do_contain_option(self, option) -> bool:
+    def get_option(self, option) -> typing.Optional[str]:
         """
         :param option: Option without its prefix
-        :return: True or False
+        :return: The option or None if it doesn't exist
         """
         for op in self.options:
             if op.startswith(f"{OPTION_PREFIX}{option}"):
-                return True
-        return False
+                return op
+        return None
 
 
 def removeprefix(self: str, prefix: str, /) -> str:

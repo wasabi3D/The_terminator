@@ -22,7 +22,18 @@ class Echo(BaseCommand):
         self.description = "Repeat what the user said"
 
     async def run(self, cmd: TypedCommand, client: discord.Client):
-        await cmd.channel.send(cmd.raw)
+        rep = cmd.get_option("rep")
+        num = 1
+        content = cmd.raw
+        try:
+            if rep:
+                num = int(rep.split('=')[1])
+            content = " ".join(cmd.args)
+        except ValueError or IndexError:
+            pass
+
+        for i in range(num):
+            await cmd.channel.send(content)
 
 
 class Adder(BaseCommand):
@@ -50,12 +61,12 @@ class ChangePrefix(BaseCommand):
             await cmd.channel.send("Please enter the new prefix.")
             return
         new_prefix = cmd.args[0]
-        if cmd.do_contain_option("option"):
+        if cmd.get_option("option"):
             Utils.Command.OPTION_PREFIX = new_prefix
         else:
             Utils.Command.CMD_PREFIX = new_prefix
 
-        if not cmd.do_contain_option("tmp"):
+        if not cmd.get_option("tmp"):
             cfg_mng.cfg.config["option_prefix"] = Utils.Command.OPTION_PREFIX
             cfg_mng.cfg.config["command_prefix"] = Utils.Command.CMD_PREFIX
             cfg_mng.cfg.export_config()
@@ -75,8 +86,7 @@ class Help(BaseCommand):
         embed.colour = discord.Colour.red()
         for c in CMD_LIST:
             ins: BaseCommand = c()
-            if cmd.user_hierarchy.value >= ins.permission_level.value or\
-                    f"{Utils.Command.OPTION_PREFIX}all" in cmd.options:
+            if cmd.user_hierarchy.value >= ins.permission_level.value or cmd.get_option("all"):
                 embed.add_field(name=f"{Utils.Command.CMD_PREFIX}{ins.keyword}", value=ins.description)
 
         await cmd.channel.send(embed=embed)
