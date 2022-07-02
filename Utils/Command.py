@@ -70,6 +70,8 @@ def parse2cmd(raw_command: str,
     spl = raw_command.split(" ")
     preprocess = []
     for arg in spl:
+        if len(arg) == 0:
+            continue
         if len(preprocess) > 0:
             last = preprocess[-1]
             if last[-1] == CANCEL_SPACE:
@@ -106,7 +108,7 @@ class BaseCommand:
         self.description = ""
         self.permission_level: Permission = Permission.EVERYONE
 
-    async def run(self, cmd: TypedCommand, client):
+    async def run(self, cmd: TypedCommand, client: discord.Client):
         pass
 
 
@@ -114,8 +116,8 @@ class CommandInterpreter:
     """
     Class which executes a given command
     """
-    def __init__(self, *available_commands: typing.Callable):
-        self.commands: list[BaseCommand] = list(map(lambda c: c(), available_commands))
+    def __init__(self, *available_commands: BaseCommand):
+        self.commands: list[BaseCommand] = list(available_commands)
 
     async def on_message(self, msg: discord.Message, client: discord.Client):
         if not msg.content.startswith(CMD_PREFIX):

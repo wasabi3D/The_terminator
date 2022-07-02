@@ -1,6 +1,7 @@
 import commands_list
 from commands_list import *
 import config_manager as cfg_mng
+import threading
 
 
 def main(config: dict[str, typing.Any]):
@@ -16,7 +17,7 @@ def main(config: dict[str, typing.Any]):
 
     execute_on_msg = [
         Utils.CommandInterpreter(
-            *commands_list.CMD_LIST
+            *commands_list.CMD_LIST.values()
         )
     ]
 
