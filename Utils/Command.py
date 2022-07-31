@@ -6,9 +6,9 @@ import discord
 import typing
 
 
-CMD_PREFIX = "!"
 CANCEL_SPACE = "\\"
-OPTION_PREFIX = "--"
+CMD_PREFIX = "!"
+OPT_PREFIX = "--"
 
 
 class Permission(Enum):
@@ -30,13 +30,13 @@ class TypedCommand:
     raw: str = ""  # raw arguments and options
     user_hierarchy: Permission = Permission.EVERYONE
 
-    def get_option(self, option) -> typing.Optional[str]:
+    def get_option(self, option, opt_prefix=OPT_PREFIX) -> typing.Optional[str]:
         """
         :param option: Option without its prefix
         :return: The option or None if it doesn't exist
         """
         for op in self.options:
-            if op.startswith(f"{OPTION_PREFIX}{option}"):
+            if op.startswith(f"{opt_prefix}{option}"):
                 return op
         return None
 
@@ -58,7 +58,9 @@ def removesuffix(self: str, suffix: str, /) -> str:
 
 def parse2cmd(raw_command: str,
               usr: typing.Optional[discord.User] = None,
-              channel: typing.Optional[discord.TextChannel] = None
+              channel: typing.Optional[discord.TextChannel] = None,
+              cmd_prefix=CMD_PREFIX,
+              opt_prefix=OPT_PREFIX
               ) -> TypedCommand:
     """
     Converts raw string command to TypedCommand
@@ -80,9 +82,9 @@ def parse2cmd(raw_command: str,
                 continue
         preprocess.append(arg)
 
-    cmd = TypedCommand(keyword=removeprefix(preprocess[0], CMD_PREFIX), raw=" ".join(preprocess[1:]))
+    cmd = TypedCommand(keyword=removeprefix(preprocess[0], cmd_prefix), raw=" ".join(preprocess[1:]))
     for kw in preprocess[1:]:
-        if kw.startswith(OPTION_PREFIX):
+        if kw.startswith(opt_prefix):
             cmd.options.append(kw)
         else:
             if kw.startswith('"') and kw.endswith('"'):
@@ -119,8 +121,8 @@ class CommandInterpreter:
     def __init__(self, *available_commands: BaseCommand):
         self.commands: list[BaseCommand] = list(available_commands)
 
-    async def on_message(self, msg: discord.Message, client: discord.Client):
-        if not msg.content.startswith(CMD_PREFIX):
+    async def on_message(self, msg: discord.Message, client: discord.Client, cmd_prefix=CMD_PREFIX):
+        if not msg.content.startswith(cmd_prefix):
             return
         typed_cmd = parse2cmd(msg.content, msg.author, msg.channel)
         called_cmd: BaseCommand = BaseCommand()

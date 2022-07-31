@@ -49,30 +49,30 @@ class Adder(BaseCommand):
         await cmd.channel.send(f"{self.total}")
         await client.get_channel(992081849838993439).send(f"{cmd.user.mention} has added 1, total = {self.total}")
 
-
-class ChangePrefix(BaseCommand):
-    def __init__(self):
-        super().__init__()
-        self.keyword = "chprefix"
-        self.description = "Change command prefix."
-        self.permission_level = Permission.ADMIN
-
-    async def run(self, cmd: TypedCommand, client: discord.Client):
-        if len(cmd.args) == 0:
-            await cmd.channel.send("Please enter the new prefix.")
-            return
-        new_prefix = cmd.args[0]
-        if cmd.get_option("option"):
-            Utils.Command.OPTION_PREFIX = new_prefix
-        else:
-            Utils.Command.CMD_PREFIX = new_prefix
-
-        if not cmd.get_option("tmp"):
-            cfg_mng.cfg.config["option_prefix"] = Utils.Command.OPTION_PREFIX
-            cfg_mng.cfg.config["command_prefix"] = Utils.Command.CMD_PREFIX
-            cfg_mng.cfg.export_config()
-        await client.change_presence(activity=discord.Game(f"Type {Utils.Command.CMD_PREFIX}help"))
-        await cmd.channel.send("Prefix successfully changed.")
+#
+# class ChangePrefix(BaseCommand):
+#     def __init__(self):
+#         super().__init__()
+#         self.keyword = "chprefix"
+#         self.description = "Change command prefix."
+#         self.permission_level = Permission.ADMIN
+#
+#     async def run(self, cmd: TypedCommand, client: discord.Client):
+#         if len(cmd.args) == 0:
+#             await cmd.channel.send("Please enter the new prefix.")
+#             return
+#         new_prefix = cmd.args[0]
+#         if cmd.get_option("option"):
+#             Utils.Command.OPTION_PREFIX = new_prefix
+#         else:
+#             Utils.Command.CMD_PREFIX = new_prefix
+#
+#         if not cmd.get_option("tmp"):
+#             cfg_mng.cfg.config["option_prefix"] = Utils.Command.OPTION_PREFIX
+#             cfg_mng.cfg.config["command_prefix"] = Utils.Command.CMD_PREFIX
+#             cfg_mng.cfg.export_config()
+#         await client.change_presence(activity=discord.Game(f"Type {Utils.Command.CMD_PREFIX}help"))
+#         await cmd.channel.send("Prefix successfully changed.")
 
 
 class Help(BaseCommand):
@@ -158,5 +158,5 @@ class Delete(BaseCommand):
             pass
 
 
-_available = [Ping, Echo, Adder, ChangePrefix, Help, Select, Delete]
+_available = [Ping, Echo, Adder, Help, Select, Delete]
 CMD_LIST: dict[type, BaseCommand] = dict(zip(_available, map(lambda cls: cls(), _available)))
