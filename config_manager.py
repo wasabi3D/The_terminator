@@ -6,21 +6,6 @@ import os
 import json
 
 
-class cfg:
-    config = {}
-
-    @classmethod
-    def get_config(cls):
-        os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        cls.config = yaml.load(open("botconfigs.yml", "r"), yaml.CLoader)
-        return cls.config
-
-    @classmethod
-    def export_config(cls):
-        os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        yaml.dump(cls.config, open("botconfigs.yml", 'w'), yaml.CDumper)
-
-
 @dataclasses.dataclass
 class Config:
     test: int = 5
