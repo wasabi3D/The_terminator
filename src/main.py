@@ -1,20 +1,25 @@
 import commands_list
 from commands_list import *
 import config_manager as cfg_mng
-import vars
+import bwm
+import Utils
+import os
 
 
 def main():
+    os.chdir(os.path.dirname(__file__))
     token = input("Please enter bot token: ")
     intents = discord.Intents.default()
     intents.members = True
+    intents.presences = True
     client = discord.Client(intents=intents)
 
     @client.event
     async def on_ready():
         print('Bot successfully connected to Discord.')
-        vars.GUILDS = client.guilds
-        cfg_mng.GuildConfigManager.load().initialize(vars.GUILDS).export()
+        guilds = client.guilds
+        cfg_mng.GuildConfigManager.load().initialize(guilds).export()
+        bwm.OnlineHistory.initialize(guilds).save()
 
     execute_on_msg = [
         Utils.CommandInterpreter(
@@ -26,6 +31,10 @@ def main():
     async def on_message(message: discord.Message):
         for cal in execute_on_msg:
             await cal.on_message(message, client)
+
+    @client.event
+    async def on_member_update(before: discord.Member, after: discord.Member):
+        bwm.OnlineHistory.update_usr_status(after)
 
     client.run(token)
 

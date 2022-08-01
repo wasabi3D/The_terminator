@@ -1,7 +1,6 @@
 import dataclasses
 
 import discord
-import yaml
 import os
 import json
 
@@ -13,16 +12,18 @@ class Config:
 
 class GuildConfigManager:
     config: dict[int, Config] = {}
+    FILE = "../data/guild_configs.json"
 
     @classmethod
     def load(cls):
         try:
-            with open("guild_configs.json", "r") as f:
-                tmp = json.load(f)
-                for id_, cfg_dict in tmp.items():
-                    tmp_cfg = Config()
-                    tmp_cfg.__dict__ = cfg_dict
-                    cls.config[id_] = tmp_cfg
+            if os.path.exists(cls.FILE):
+                with open(cls.FILE, "r") as f:
+                    tmp = json.load(f)
+                    for id_, cfg_dict in tmp.items():
+                        tmp_cfg = Config()
+                        tmp_cfg.__dict__ = cfg_dict
+                        cls.config[id_] = tmp_cfg
         except json.decoder.JSONDecodeError:
             pass
         return cls
@@ -36,9 +37,9 @@ class GuildConfigManager:
 
     @classmethod
     def export(cls):
-        with open("guild_configs.json", "w") as f:
+        with open(cls.FILE, "w") as f:
             tmp = {}
             for id_, cfg_obj in cls.config.items():
                 tmp[id_] = cfg_obj.__dict__
-            json.dump(tmp, f)
+            json.dump(tmp, f, indent=2)
         return cls

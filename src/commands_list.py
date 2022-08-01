@@ -1,9 +1,7 @@
 import typing
 import discord
-import Utils
 import re
-from Utils.Command import BaseCommand, TypedCommand, Permission
-import config_manager as cfg_mng
+from Utils.Command import BaseCommand, TypedCommand, Permission, CMD_PREFIX
 
 
 class Ping(BaseCommand):
@@ -88,7 +86,7 @@ class Help(BaseCommand):
         for c in CMD_LIST.values():
             ins: BaseCommand = c
             if cmd.user_hierarchy.value >= ins.permission_level.value or cmd.get_option("all"):
-                embed.add_field(name=f"{Utils.Command.CMD_PREFIX}{ins.keyword}", value=ins.description)
+                embed.add_field(name=f"{CMD_PREFIX}{ins.keyword}", value=ins.description)
 
         await cmd.channel.send(embed=embed)
 
@@ -158,5 +156,25 @@ class Delete(BaseCommand):
             pass
 
 
-_available = [Ping, Echo, Adder, Help, Select, Delete]
+class Id(BaseCommand):
+    def __init__(self):
+        super().__init__()
+        self.keyword = "id"
+        self.description = "Allows the user to obtain someone's user id by their name and discriminator."
+        self.permission_level = Permission.EVERYONE
+
+    async def run(self, cmd: TypedCommand, client: discord.Client):
+        target_user = cmd.args[0]
+        guild_range = [cmd.channel.guild] if not cmd.get_option("all") else client.guilds
+
+        member: discord.Member
+        for guild in guild_range:
+            for member in guild.members:
+                if target_user == f"{member.name}#{member.discriminator}":
+                    await cmd.channel.send(member.id)
+                    return
+        await cmd.channel.send("User not found. Try using the --all option.")
+
+
+_available = [Ping, Echo, Adder, Help, Select, Delete, Id]
 CMD_LIST: dict[type, BaseCommand] = dict(zip(_available, map(lambda cls: cls(), _available)))
