@@ -3,6 +3,7 @@ import enum
 import json
 import time
 import os
+import threading
 
 
 class ScoreType(enum.Enum):
@@ -30,8 +31,9 @@ class OnlineHistory:
         return False
 
     @classmethod
-    def update_usr_status(cls, after: discord.Member, minimum_interval=30):
+    def update_usr_status(cls, after: discord.Member, minimum_interval=0.5):
         if not cls.usr_init(after):
+            print(time.time() - cls.history[after.id][-1][0] >= minimum_interval)
             if time.time() - cls.history[after.id][-1][0] >= minimum_interval:
                 cls.history[after.id].append((time.time(), after.status.value))
 
@@ -41,9 +43,23 @@ class OnlineHistory:
             json.dump(cls.history, f, indent=2)
         return cls
 
+    @classmethod
+    def run_periodic_checker(cls):
+        th = threading.Thread(target=cls._check, name="TimestampPeriodicChecker")
+        th.start()
+
+    @classmethod
+    def _check(cls):
+        interval = 60
+        while True:
+            for uid in cls.history:
+                cls.history[uid].append((time.time(), cls.history[uid][-1][1]))
+            cls.save()
+            time.sleep(interval)
+
 
 class BwmScoreTable:
-    FILE = "bwm_scores.json"
+    FILE = "../data/bwm_scores.json"
 
     def __init__(self):
         self.enabled = False

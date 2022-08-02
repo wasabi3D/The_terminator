@@ -7,7 +7,7 @@ import json
 
 @dataclasses.dataclass
 class Config:
-    test: int = 5
+    bwm_enabled: bool = False
 
 
 class GuildConfigManager:

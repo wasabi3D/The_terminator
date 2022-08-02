@@ -19,7 +19,7 @@ def main():
         print('Bot successfully connected to Discord.')
         guilds = client.guilds
         cfg_mng.GuildConfigManager.load().initialize(guilds).export()
-        bwm.OnlineHistory.initialize(guilds).save()
+        bwm.OnlineHistory.initialize(guilds).save().run_periodic_checker()
 
     execute_on_msg = [
         Utils.CommandInterpreter(
