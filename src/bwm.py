@@ -12,7 +12,7 @@ class ScoreType(enum.Enum):
 
 
 class OnlineHistory:
-    history: dict[int, list[tuple[float, str]]] = {}
+    history: dict[int, list[list[float, str, bool]]] = {}
     FILE = "../data/onlinehistory.json"
 
     @classmethod
@@ -25,22 +25,33 @@ class OnlineHistory:
 
     @classmethod
     def usr_init(cls, member: discord.Member) -> bool:
+        first = False
         if member.id not in cls.history or len(cls.history[member.id]) == 0:
-            cls.history[member.id] = [(time.time(), member.status.value)]
-            return True
-        return False
+            cls.history[member.id] = []
+            first = True
+        cls.history[member.id].append([time.time(), member.status.value, False])
+        cls.history[member.id].append([time.time(), discord.Status.offline, True])
+        return first
 
     @classmethod
     def update_usr_status(cls, after: discord.Member, minimum_interval=0.5):
         if not cls.usr_init(after):
-            print(time.time() - cls.history[after.id][-1][0] >= minimum_interval)
             if time.time() - cls.history[after.id][-1][0] >= minimum_interval:
-                cls.history[after.id].append((time.time(), after.status.value))
+                if cls.history[after.id][-1][2]:
+                    cls.history[after.id].pop()
+                cls.history[after.id].append([time.time(), after.status.value, False])
+                cls.history[after.id].append([time.time(), discord.Status.offline, True])
 
     @classmethod
     def save(cls):
         with open(cls.FILE, "w") as f:
             json.dump(cls.history, f, indent=2)
+        return cls
+
+    @classmethod
+    def load(cls):
+        with open(cls.FILE, "r") as f:
+            cls.history = json.load(f)
         return cls
 
     @classmethod
@@ -50,10 +61,13 @@ class OnlineHistory:
 
     @classmethod
     def _check(cls):
-        interval = 60
+        interval = 5
         while True:
             for uid in cls.history:
-                cls.history[uid].append((time.time(), cls.history[uid][-1][1]))
+                if not cls.history[uid][-1][2]:
+                    cls.history[uid].append([time.time(), discord.Status.offline, True])
+                else:
+                    cls.history[uid][-1][0] = time.time()
             cls.save()
             time.sleep(interval)
 
@@ -80,3 +94,4 @@ class BwmScoreTable:
     def export(self):
         with open(self.__class__.FILE, 'w') as f:
             json.dump(self.__dict__, f)
+

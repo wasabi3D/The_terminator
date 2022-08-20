@@ -47,31 +47,6 @@ class Adder(BaseCommand):
         await cmd.channel.send(f"{self.total}")
         await client.get_channel(992081849838993439).send(f"{cmd.user.mention} has added 1, total = {self.total}")
 
-#
-# class ChangePrefix(BaseCommand):
-#     def __init__(self):
-#         super().__init__()
-#         self.keyword = "chprefix"
-#         self.description = "Change command prefix."
-#         self.permission_level = Permission.ADMIN
-#
-#     async def run(self, cmd: TypedCommand, client: discord.Client):
-#         if len(cmd.args) == 0:
-#             await cmd.channel.send("Please enter the new prefix.")
-#             return
-#         new_prefix = cmd.args[0]
-#         if cmd.get_option("option"):
-#             Utils.Command.OPTION_PREFIX = new_prefix
-#         else:
-#             Utils.Command.CMD_PREFIX = new_prefix
-#
-#         if not cmd.get_option("tmp"):
-#             cfg_mng.cfg.config["option_prefix"] = Utils.Command.OPTION_PREFIX
-#             cfg_mng.cfg.config["command_prefix"] = Utils.Command.CMD_PREFIX
-#             cfg_mng.cfg.export_config()
-#         await client.change_presence(activity=discord.Game(f"Type {Utils.Command.CMD_PREFIX}help"))
-#         await cmd.channel.send("Prefix successfully changed.")
-
 
 class Help(BaseCommand):
     def __init__(self):
@@ -176,5 +151,32 @@ class Id(BaseCommand):
         await cmd.channel.send("User not found. Try using the --all option.")
 
 
-_available = [Ping, Echo, Adder, Help, Select, Delete, Id]
+class GetStatusTime(BaseCommand):
+    def __init__(self):
+        super().__init__()
+        self.keyword = "getstattime"
+        self.description = "Get the sum of a specific user's status time."
+        self.permission_level = Permission.EVERYONE
+
+    async def run(self, cmd: TypedCommand, client: discord.Client):
+        import bwm
+        target_uid = int(cmd.args[0])
+        target_status = cmd.args[1].lower()
+
+        history = bwm.OnlineHistory.history
+        if target_uid in history:
+            start = -1
+            total = 0
+            for status in history[target_uid]:
+                if status[1] == target_status:
+                    start = status[0]
+                elif start != -1:
+                    total += status[0] - start
+                    start = -1
+            await cmd.channel.send(f"{total} s")
+        else:
+            await cmd.channel.send("The user doesn't exist or has no timestamp log.")
+
+
+_available = [Ping, Echo, Adder, Help, Select, Delete, Id, GetStatusTime]
 CMD_LIST: dict[type, BaseCommand] = dict(zip(_available, map(lambda cls: cls(), _available)))

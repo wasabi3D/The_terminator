@@ -4,6 +4,7 @@ import config_manager as cfg_mng
 import bwm
 import Utils
 import os
+import discord
 
 
 def main():
@@ -19,7 +20,7 @@ def main():
         print('Bot successfully connected to Discord.')
         guilds = client.guilds
         cfg_mng.GuildConfigManager.load().initialize(guilds).export()
-        bwm.OnlineHistory.initialize(guilds).save().run_periodic_checker()
+        bwm.OnlineHistory.load().initialize(guilds).save().run_periodic_checker()
 
     execute_on_msg = [
         Utils.CommandInterpreter(
